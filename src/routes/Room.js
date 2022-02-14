@@ -56,7 +56,7 @@ const Room = (props) => {
                 userVideo.current.srcObject = stream;
                 setlocalStream(stream);
                 console.log("inside")
-                socketRef.current.emit("join room", { roomID: roomID });
+                socketRef.current.emit("join_room", { roomID: roomID });
                 socketRef.current.on("usersInLink" + roomID, users => {
                     const peers = [];
                     debugger
@@ -71,7 +71,7 @@ const Room = (props) => {
                     setPeers(peers);
                 })
 
-                socketRef.current.on("user joined", payload => {
+                socketRef.current.on("user_joined", payload => {
                     const peer = addPeer(payload.signal, payload.callerID, stream);
                     peersRef.current.push({
                         peerID: payload.callerID,
@@ -88,9 +88,9 @@ const Room = (props) => {
                     item.peer.signal(payload.signal);
                 });
 
-                socketRef.current.on("userPresent", payload => {
-                    console.log(payload);
-                });
+                // socketRef.current.on("userPresent", payload => {
+                //     console.log(payload);
+                // });
             })
         }
         // eslint-disable-next-line
@@ -104,7 +104,7 @@ const Room = (props) => {
         });
 
         peer.on("signal", signal => {
-            socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
+            socketRef.current.emit("sending_signal", { userToSignal, callerID, signal })
         })
 
         return peer;
@@ -118,7 +118,7 @@ const Room = (props) => {
         })
 
         peer.on("signal", signal => {
-            socketRef.current.emit("returning signal", { signal, callerID })
+            socketRef.current.emit("returning_signal", { signal, callerID })
         })
         console.log('incomingSignal', incomingSignal);
         peer.signal(incomingSignal);
