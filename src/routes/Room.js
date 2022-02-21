@@ -48,9 +48,17 @@ const Room = (props) => {
     const [localstream, setlocalStream] = useState([]);
     let [isFlipCamera, setFlipCamer] = useState(true);
 
-    useEffect(() => {
-        socketRef.current = io.connect("http://localhost:3030/", { transports: ['websocket', 'polling', 'flashsocket'] });
+    let managerDetails = {
+        // managerCode: props.agentId + ":" + uuidv4(),
+        managerCode: 813,
+        storeCode: 'erreportingdemoEZ004',
+        isOnline: true,
+        isBusy: false,
+        isCalling: false,
+    };
 
+    useEffect(() => {
+        socketRef.current = io.connect("http://localhost:4441/", { transports: ['websocket'] });
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }).then(stream => {
                 userVideo.current.srcObject = stream;
@@ -81,20 +89,21 @@ const Room = (props) => {
                     setPeers(users => [...users, peer]);
                 });
 
-                socketRef.current.on("receiving returned signal", payload => {
+                socketRef.current.on("receiving_returned_signal", payload => {
                     console.log(payload);
 
                     const item = peersRef.current.find(p => p.peerID === payload.id);
                     item.peer.signal(payload.signal);
                 });
-
-                // socketRef.current.on("userPresent", payload => {
-                //     console.log(payload);
-                // });
             })
         }
         // eslint-disable-next-line
-    }, [isFlipCamera]);
+    }, []);
+
+    useEffect(() => {
+        socketRef.current.emit("storeOnline", managerDetails.storeCode);
+        socketRef.current.emit("storeMangerDetail", managerDetails);
+    }, [])
 
     function createPeer(userToSignal, callerID, stream) {
         const peer = new Peer({
@@ -128,6 +137,7 @@ const Room = (props) => {
 
     const stopCall = () => {
         userVideo.current.srcObject = null;
+        socketRef.current.emit('deleteLink', managerDetails.storeCode + managerDetails.managerCode)
         window.location.replace('/');
     }
     function updateAudio() {
